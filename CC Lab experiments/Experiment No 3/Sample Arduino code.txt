@@ -1,0 +1,40 @@
+#define sel1 38
+#define sel2 39
+#define rst_ 40
+#define clk 12
+
+int alpha;
+byte alpha1, alpha2;
+
+void setup()
+ {
+  pinMode(sel1, OUTPUT);
+  pinMode(sel2, OUTPUT);
+  pinMode(rst_, OUTPUT);
+  pinMode(clk, OUTPUT);
+
+  TCCR1B=0x01;
+  analogWrite(clk, 127);
+
+  digitalWrite(rst_, LOW);
+  delay(1000);
+  digitalWrite(rst_, HIGH);
+
+ alpha = 0;
+ DDRC=0b00000000;
+
+  Serial.begin(9600);
+
+}
+
+void loop()
+ {
+  digitalWrite(sel1, HIGH);
+  digitalWrite(sel2, LOW);
+  alpha1=PINC;
+  digitalWrite(sel1, LOW);
+  digitalWrite(sel2, LOW);
+  alpha2=PINC;
+  alpha=word(alpha2, alpha1);
+  Serial.println(alpha);
+}
