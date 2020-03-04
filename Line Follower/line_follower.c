@@ -170,38 +170,18 @@ void stop(){
 motion_set(0x0f);
 }
 
-
-
-float kp1=10;
-float kd1=400;
-float ki1=0;
-float error1=0;
-float previouserror1=0;
-float totalerror1=0;
-float power1=0;
-float targetvalue1 = 5;
-float pid1(float th1){
-previouserror1=error1;
-error1 = targetvalue1 - th1;
-totalerror1 += error1;
-power1 = kp1*error1 +kd1*(error1-previouserror1) + ki1*totalerror1;
-return power1;
-}
-
-float kp2=10;
-float kd2=400;
-float ki2=0;
-float error2=0;
-float previouserror2=0;
-float totalerror2=0;
-float power2=0;
-float targetvalue2 = 5;
-float pid2(float th2){
-previouserror2=error2;
-error2 = targetvalue2 - th2;
-totalerror2 += error2;
-power2 = kp2*error2 +kd2*(error2-previouserror2) + ki2*totalerror2;
-return power2;
+float kp=4;   // 3 0 0 - 23s   4 0.5 0.001 - 24s
+float kd=1;
+float ki=0.001;
+float previouserror=0;
+float totalerror=0;
+float power=0;
+float targetvalue = 0;
+float pid(float error){
+previouserror=error;
+totalerror += error;
+power = kp*error +kd*(error-previouserror) + ki*totalerror;
+return power;
 }
 
 void velocity (unsigned char left_motor, unsigned char right_motor)
@@ -217,114 +197,55 @@ int main(void)
 
  lcd_set_4bit();
  lcd_init();
- int base_vel = 127, lm, rm;
- int p1, p2, e1, e2;
+ int p = 0, p1, p2, e1, e2,e;
+ float power1, power2, error_pid;
 while(1)
 {
 	l=ADC_Conversion(3);
 	c=ADC_Conversion(4);
 	r=ADC_Conversion(5);
-	lcd_print(1, 1, l, 3);
-	lcd_print(1, 5, c, 3);
-	lcd_print(1, 9, r, 3);
-	_delay_ms(3);
+	//lcd_print(1, 1, l, 3);
+	//lcd_print(1, 5, c, 3);
+	//lcd_print(1, 9, r, 3);
 	
-	e1 =  (float) c/l;
-	e2 =  (float) c/r;
-	p1 = pid1(e1);
-	p2 = pid2(e2);
+	//lcd_print(2, 3, power1, 3);
+	//lcd_print(2, 7, power2, 3);
+
+	_delay_ms(1);
 	
-	lm = (int)p1;
-	if(lm > 255 || e1 > 5)
-	lm = 255;
-	rm = (int)p2;
-	if(rm > 255 || e2 > 5)
-	rm = 255;
-	//dixst, deg = funct of p1, p2
-	if(l > 100)
+	error_pid = abs(l-c) - abs(r - c) + l - r; // l - c + r - c + l - r
+
+	power1 = pid(error_pid);
+	if (c > 150 && l < 100 && r < 100)
+	{ forward();
+	  velocity(200, 200);
+	}
+	else{
+	if (power1  < 75 && power1 > -75)
+	  {forward();
+       velocity(200, 200);
+	  }
+    else if (power1 > 75 && power1 < 200)
+	 {soft_left();
+      velocity(200 - power1, 200 - power1);
+	 }
+    else if (power1 > 200)
+	 {left();
+      velocity(200,200);
+	 }
+    else if (power1 > -200 && power1 < -75)
 	 {soft_right();
-	velocity(0, rm);
+      velocity(200 + power1, 200 + power1);
 	 }
-	 if (r > 100)
-	 { soft_left();
-	 velocity(lm,0);
-	 }
-	 if( c > 150)
-	 { forward();
-	  velocity(lm,rm);
+    else if (power1 < -200)
+	 {right();
+      velocity(200,200);
 	 }
 
 
-/*
-	if (e1<1.5 && e2 <1.5)
-	{forward();
-	 velocity(lm,rm);
 	}
-	if(e2 < 1.5)
-	{soft_left();
-	 velocity(lm,0);
-	}
-	if(e1 <1.5)
-	{soft_right();
-	velocity(0, rm);
-	}
-	if (e2 > 1.5 && e1 > 1.5)
-	{forward();
-	velocity(lm,rm);
-	}
-*/
+
+
 }
-
-/*
-while(1)
-{
-	forward();            //both wheels forward
-	_delay_ms(1000);
-
-	hard_stop();						
-	_delay_ms(300);
-
-	back();               //both wheels backward						
-	_delay_ms(1000);
-
-	hard_stop();						
-	_delay_ms(300);
-
-	left();               //Left wheel backward, Right wheel forward
-	_delay_ms(1000);
-
-	hard_stop();						
-	_delay_ms(300);
-
-	right();              //Left wheel forward, Right wheel backward
-	_delay_ms(1000);
-
-	hard_stop();						
-	_delay_ms(300);
-
-	soft_left();          //Left wheel stationary, Right wheel forward
-	_delay_ms(1000);
-
-	hard_stop();						
-	_delay_ms(300);
-
-	soft_right();         //Left wheel forward, Right wheel is stationary
-	_delay_ms(1000);
-
-	hard_stop();						
-	_delay_ms(300);
-
-	soft_left_2();        //Left wheel backward, right wheel stationary
-	_delay_ms(1000);
-
-	hard_stop();						
-	_delay_ms(300);
-
-	soft_right_2();       //Left wheel stationary, Right wheel backward
-	_delay_ms(1000);
-
-	hard_stop();						
-	_delay_ms(300);
-}*/
 
 }
