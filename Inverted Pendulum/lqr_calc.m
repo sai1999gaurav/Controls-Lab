@@ -34,4 +34,4 @@ Q = diag([q1 q2 q3 q4]);
 
 R = 1;
 K = lqr(A, B, Q, R);
-disp(K);
+disp(-K);
