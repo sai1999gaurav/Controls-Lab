@@ -27,7 +27,7 @@ void PID_program()
     if(highval>255)
     highval = 255;
     Serial.println(highval);
-    if(power>0) // Turn left
+    if(power>0) // Turn left err
     {  
         analogWrite(motorpin1, highval); //high
         digitalWrite(motorpin2, LOW);
